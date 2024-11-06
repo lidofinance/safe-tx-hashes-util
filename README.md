@@ -53,15 +53,26 @@ This Bash [script](./safe_hashes.sh) calculates the Safe transaction hashes by r
 - `--address <address>`: Specify the Safe multisig address.
 - `--nonce <nonce>`: Specify the transaction nonce.
 
-Before you invoke the script, make it executable:
+Before you invoke the [script](./safe_hashes.sh), make it executable:
 
 ```console
 chmod +x safe_hashes.sh
 ```
 
+> [!TIP]
+> The [script](./safe_hashes.sh) is already set as _executable_ in the repository, so you can run it immediately after cloning or pulling the repository without needing to change permissions.
+
+To enable _debug mode_, set the `DEBUG` environment variable to `true` before running the [script](./safe_hashes.sh):
+
+```console
+DEBUG=true ./safe_hashes.sh ...
+```
+
+This will print each command before it is executed, which is helpful when troubleshooting.
+
 ### macOS Users: Upgrading Bash
 
-This script requires Bash [`4.0`](https://tldp.org/LDP/abs/html/bashver4.html) or higher due to its use of associative arrays (introduced in Bash [`4.0`](https://tldp.org/LDP/abs/html/bashver4.html)). Unfortunately, macOS ships by default with Bash `3.2` due to licensing requirements. To use this script, install a newer version of Bash through [Homebrew](https://brew.sh):
+This [script](./safe_hashes.sh) requires Bash [`4.0`](https://tldp.org/LDP/abs/html/bashver4.html) or higher due to its use of associative arrays (introduced in Bash [`4.0`](https://tldp.org/LDP/abs/html/bashver4.html)). Unfortunately, macOS ships by default with Bash `3.2` due to licensing requirements. To use this [script](./safe_hashes.sh), install a newer version of Bash through [Homebrew](https://brew.sh):
 
 1. Install [Homebrew](https://brew.sh) if you haven't already:
 
@@ -99,7 +110,7 @@ bash --version
 ./safe_hashes.sh --network arbitrum --address 0x111CEEee040739fD91D29C34C33E6B3E112F2177 --nonce 234
 ```
 
-The script will output the domain, message, and Safe transaction hashes, allowing you to easily verify them against the values displayed on your Ledger hardware wallet screen:
+The [script](./safe_hashes.sh) will output the domain, message, and Safe transaction hashes, allowing you to easily verify them against the values displayed on your Ledger hardware wallet screen:
 
 ```console
 ===================================
@@ -159,7 +170,7 @@ To list all supported networks:
 ## Community-Maintained User Interface Implementations
 
 > [!IMPORTANT]
-> Please be aware that user interface implementations may introduce additional trust assumptions, such as relying on `npm` dependencies that have not undergone thorough review. Always verify and cross-reference with the main script.
+> Please be aware that user interface implementations may introduce additional trust assumptions, such as relying on `npm` dependencies that have not undergone thorough review. Always verify and cross-reference with the main [script](./safe_hashes.sh).
 
 - [`safehashpreview.com`](https://www.safehashpreview.com):
   - Code: [`josepchetrit12/safe-tx-hashes-util`](https://github.com/josepchetrit12/safe-tx-hashes-util)

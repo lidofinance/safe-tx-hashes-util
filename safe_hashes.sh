@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ########################
 # Don't trust, verify! #
@@ -18,10 +18,17 @@ if [[ "$BASH_VERSINFO" -lt 4 ]]; then
 fi
 
 # Enable strict error handling:
+# -E: Inherit `ERR` traps in functions and subshells.
 # -e: Exit immediately if a command exits with a non-zero status.
 # -u: Treat unset variables as an error and exit.
 # -o pipefail: Return the exit status of the first failed command in a pipeline.
-set -euo pipefail
+set -Eeuo pipefail
+
+# Enable debug mode if the environment variable `DEBUG` is set to `true`.
+if [[ "${DEBUG:-false}" == "true" ]]; then
+    # Print each command before executing it.
+    set -x
+fi
 
 # Set the terminal formatting constants.
 readonly GREEN="\e[32m"
@@ -38,13 +45,9 @@ readonly DOMAIN_SEPARATOR_TYPEHASH="0x47e79534a245952e8b16893a336b85a3d9ea9fa8c5
 # See: https://github.com/safe-global/safe-smart-account/blob/a0a1d4292006e26c4dbd52282f4c932e1ffca40f/contracts/Safe.sol#L59-L62.
 readonly SAFE_TX_TYPEHASH="0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8"
 
-# Define the associative arrays for the API URLs and chain IDs.
-declare -A API_URLS
-declare -A CHAIN_IDS
-
 # Define the supported networks from the Safe transaction service.
 # See https://docs.safe.global/core-api/transaction-service-supported-networks.
-API_URLS=(
+declare -A -r API_URLS=(
     ["arbitrum"]="https://safe-transaction-arbitrum.safe.global"
     ["aurora"]="https://safe-transaction-aurora.safe.global"
     ["avalanche"]="https://safe-transaction-avalanche.safe.global"
@@ -69,7 +72,7 @@ API_URLS=(
 )
 
 # Define the chain IDs of the supported networks from the Safe transaction service.
-CHAIN_IDS=(
+declare -A -r CHAIN_IDS=(
     ["arbitrum"]="42161"
     ["aurora"]="1313161554"
     ["avalanche"]="43114"
@@ -123,7 +126,7 @@ list_networks() {
 # Utility function to print a section header.
 print_header() {
     local header=$1
-    if [ -t 1 ] && tput sgr0 >/dev/null 2>&1; then
+    if [[ -t 1 ]] && tput sgr0 >/dev/null 2>&1; then
         # Terminal supports formatting.
         printf "\n${UNDERLINE}%s${RESET}\n" "$header"
     else
@@ -138,7 +141,7 @@ print_field() {
     local value=$2
     local empty_line=${3:-false}
 
-    if [ -t 1 ] && tput sgr0 >/dev/null 2>&1; then
+    if [[ -t 1 ]] && tput sgr0 >/dev/null 2>&1; then
         # Terminal supports formatting.
         printf "%s: ${GREEN}%s${RESET}\n" "$label" "$value"
     else
@@ -147,8 +150,8 @@ print_field() {
     fi
 
     # Print an empty line if requested.
-    if [ "$empty_line" == "true" ]; then
-        echo
+    if [[ "$empty_line" == "true" ]]; then
+        printf "\n"
     fi
 }
 
@@ -355,6 +358,8 @@ EOF
                 echo "$(tput setaf 1)Error: No transaction found at index $idx. Please try again.$(tput sgr0)"
                 continue
             fi
+
+            printf "\n"
 
             break
         done
