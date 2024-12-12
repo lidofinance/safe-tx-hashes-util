@@ -1,4 +1,4 @@
-# Safe Multisig Transaction Hashes
+# Safe Multisig Transaction Hashes <!-- omit from toc -->
 
 ```console
 |)0/\/'T TR|\_|5T, \/3R1FY! 🫡
@@ -7,7 +7,18 @@
 This Bash [script](./safe_hashes.sh) calculates the Safe transaction hashes by retrieving transaction details from the [Safe transaction service API](https://docs.safe.global/core-api/transaction-service-overview) and computing both the domain and message hashes using the [EIP-712](https://eips.ethereum.org/EIPS/eip-712) standard.
 
 > [!NOTE]
-> This Bash [script](./safe_hashes.sh) relies on the [Safe transaction service API](https://docs.safe.global/core-api/transaction-service-overview), which requires transactions to be proposed and _logged_ in the service before they can be retrieved. Consequently, the initial transaction proposer cannot access the transaction at the proposal stage, making this approach incompatible with 1-of-1 multisigs.
+> This Bash [script](./safe_hashes.sh) relies on the [Safe transaction service API](https://docs.safe.global/core-api/transaction-service-overview), which requires transactions to be proposed and _logged_ in the service before they can be retrieved. Consequently, the initial transaction proposer cannot access the transaction at the proposal stage, making this approach incompatible with 1-of-1 multisigs.[^1]
+
+> [!IMPORTANT]
+> All Safe multisig versions starting from `0.1.0` and newer are supported.
+
+- [Supported Networks](#supported-networks)
+- [Usage](#usage)
+  - [macOS Users: Upgrading Bash](#macos-users-upgrading-bash)
+- [Safe Transaction Hashes](#safe-transaction-hashes)
+- [Safe Message Hashes](#safe-message-hashes)
+- [Trust Assumptions](#trust-assumptions)
+- [Community-Maintained User Interface Implementations](#community-maintained-user-interface-implementations)
 
 ## Supported Networks
 
@@ -42,7 +53,7 @@ This Bash [script](./safe_hashes.sh) calculates the Safe transaction hashes by r
 > For macOS users, please refer to the [macOS Users: Upgrading Bash](#macos-users-upgrading-bash) section.
 
 ```console
-./safe_hashes.sh [--help] [--list-networks] --network <network> --address <address> --nonce <nonce>
+./safe_hashes.sh [--help] [--list-networks] --network <network> --address <address> --nonce <nonce> --message <file>
 ```
 
 **Options:**
@@ -51,7 +62,8 @@ This Bash [script](./safe_hashes.sh) calculates the Safe transaction hashes by r
 - `--list-networks`: List all supported networks and their chain IDs.
 - `--network <network>`: Specify the network (e.g., `ethereum`, `polygon`).
 - `--address <address>`: Specify the Safe multisig address.
-- `--nonce <nonce>`: Specify the transaction nonce.
+- `--nonce <nonce>`: Specify the transaction nonce (required for transaction hashes).
+- `--message <file>`: Specify the message file (required for off-chain message hashes).
 
 Before you invoke the [script](./safe_hashes.sh), make it executable:
 
@@ -104,7 +116,9 @@ You can verify your Bash version after the installation:
 bash --version
 ```
 
-## Example
+## Safe Transaction Hashes
+
+To calculate the Safe transaction hashes for a specific transaction, you need to specify the `network`, `address`, and `nonce` parameters. An example:
 
 ```console
 ./safe_hashes.sh --network arbitrum --address 0x111CEEee040739fD91D29C34C33E6B3E112F2177 --nonce 234
@@ -127,6 +141,7 @@ Chain ID: 42161
 > Transaction Data:
 Multisig address: 0x111CEEee040739fD91D29C34C33E6B3E112F2177
 To: 0x111CEEee040739fD91D29C34C33E6B3E112F2177
+Value: 0
 Data: 0x0d582f130000000000000000000000000c75fa5a5f1c0997e3eea425cfa13184ed0ec9e50000000000000000000000000000000000000000000000000000000000000003
 Encoded message: 0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8000000000000000000000000111ceeee040739fd91d29c34c33e6b3e112f21770000000000000000000000000000000000000000000000000000000000000000b34f85cea7c4d9f384d502fc86474cd71ff27a674d785ebd23a4387871b8cbfe00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ea
 Method: addOwnerWithThreshold
@@ -159,6 +174,67 @@ To list all supported networks:
 ./safe_hashes.sh --list-networks
 ```
 
+## Safe Message Hashes
+
+This [script](./safe_hashes.sh) not only calculates Safe transaction hashes but also supports computing the corresponding hashes for off-chain messages following the [EIP-712](https://eips.ethereum.org/EIPS/eip-712) standard. To calculate the Safe message hashes for a specific message, specify the `network`, `address`, and `message` parameters. The `message` parameter must specify a valid file containing the raw message. This can be either the file name or a relative path (e.g., `path/to/message.txt`). Note that the [script](./safe_hashes.sh) normalises line endings to `LF` (`\n`) in the message file.
+
+An example: Save the following message to a file named `message.txt`:
+
+```txt
+Welcome to OpenSea!
+
+Click to sign in and accept the OpenSea Terms of Service (https://opensea.io/tos) and Privacy Policy (https://opensea.io/privacy).
+
+This request will not trigger a blockchain transaction or cost any gas fees.
+
+Wallet address:
+0x657ff0d4ec65d82b2bc1247b0a558bcd2f80a0f1
+
+Nonce:
+ea499f2f-fdbc-4d04-92c4-b60aba887e06
+```
+
+Then, invoke the following command:
+
+```console
+./safe_hashes.sh --network sepolia --address 0x657ff0D4eC65D82b2bC1247b0a558bcd2f80A0f1 --message message.txt
+```
+
+The [script](./safe_hashes.sh) will output the raw message, along with the domain, message, and Safe message hashes, allowing you to easily verify them against the values displayed on your Ledger hardware wallet screen:
+
+```console
+===================================
+= Selected Network Configurations =
+===================================
+
+Network: sepolia
+Chain ID: 11155111
+
+====================================
+= Message Data and Computed Hashes =
+====================================
+
+> Message Data:
+Multisig address: 0x657ff0D4eC65D82b2bC1247b0a558bcd2f80A0f1
+Message: Welcome to OpenSea!
+
+Click to sign in and accept the OpenSea Terms of Service (https://opensea.io/tos) and Privacy Policy (https://opensea.io/privacy).
+
+This request will not trigger a blockchain transaction or cost any gas fees.
+
+Wallet address:
+0x657ff0d4ec65d82b2bc1247b0a558bcd2f80a0f1
+
+Nonce:
+ea499f2f-fdbc-4d04-92c4-b60aba887e06
+
+> Hashes:
+Raw message hash: 0xcb1a9208c1a7c191185938c7d304ed01db68677eea4e689d688469aa72e34236
+Domain hash: 0x611379C19940CAEE095CDB12BEBE6A9FA9ABB74CDB1FBD7377C49A1F198DC24F
+Message hash: 0xA5D2F507A16279357446768DB4BD47A03BCA0B6ACAC4632A4C2C96AF20D6F6E5
+Safe message hash: 0x1866b559f56261ada63528391b93a1fe8e2e33baf7cace94fc6b42202d16ea08
+```
+
 ## Trust Assumptions
 
 1. You trust my [script](./safe_hashes.sh) 😃.
@@ -175,3 +251,5 @@ To list all supported networks:
 - [`safehashpreview.com`](https://www.safehashpreview.com):
   - Code: [`josepchetrit12/safe-tx-hashes-util`](https://github.com/josepchetrit12/safe-tx-hashes-util)
   - Authors: [`josepchetrit12`](https://github.com/josepchetrit12), [`xaler5`](https://github.com/xaler5)
+
+[^1]: While it is theoretically possible to query transactions prior to the first signature by setting `untrusted=false` in the [API](https://docs.safe.global/core-api/transaction-service-reference/mainnet#List-a-Safe's-Multisig-Transactions) query — for example, using a query like `https://safe-transaction-arbitrum.safe.global/api/v1/safes/0xB24A3AA250E209bC95A4a9afFDF10c6D099B3d34/multisig-transactions/?trusted=false&nonce=4` — this capability is not implemented in the main [script](https://github.com/pcaversaccio/safe-tx-hashes-util/blob/main/safe_hashes.sh). This decision avoids potential confusion caused by unsigned transactions in the queue, especially when multiple transactions share the same nonce, making it unclear which one to act upon. If this feature aligns with your needs, feel free to fork the [script](https://github.com/pcaversaccio/safe-tx-hashes-util/blob/main/safe_hashes.sh) and modify it as necessary.
