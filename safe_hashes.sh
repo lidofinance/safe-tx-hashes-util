@@ -78,7 +78,7 @@ readonly SAFE_TX_TYPEHASH_OLD="0x14d461bc7412367e924637b363c7bf29b8f47e2f84869f4
 readonly SAFE_MSG_TYPEHASH="0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca"
 
 # Define the supported networks from the Safe transaction service.
-# See https://docs.safe.global/core-api/transaction-service-supported-networks.
+# See https://docs.safe.global/advanced/smart-account-supported-networks?service=Transaction+Service.
 declare -A -r API_URLS=(
     ["arbitrum"]="https://safe-transaction-arbitrum.safe.global"
     ["aurora"]="https://safe-transaction-aurora.safe.global"
@@ -149,7 +149,7 @@ Example for transaction hashes:
 Example for off-chain message hashes:
   $0 --network ethereum --address 0x1234...5678 --message message.txt
 EOF
-    exit 1
+    exit "${1:-1}"
 }
 
 # Utility function to list all supported networks.
@@ -177,7 +177,7 @@ print_header() {
 print_field() {
     local label=$1
     local value=$2
-    local empty_line=${3:-false}
+    local empty_line="${3:-false}"
 
     if [[ -t 1 ]] && tput sgr0 >/dev/null 2>&1; then
         # Terminal supports formatting.
@@ -503,12 +503,17 @@ calculate_offchain_message_hashes() {
 #    - Extracts the relevant transaction details from the API response.
 #    - Calls the `calculate_hashes` function to compute and display the results.
 calculate_safe_hashes() {
+    # Display the help message if no arguments are provided.
+    if [[ $# -eq 0 ]]; then
+        usage
+    fi
+
     local network="" address="" nonce="" message_file=""
 
     # Parse the command line arguments.
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --help) usage ;;
+            --help) usage 0 ;;
             --network) network="$2"; shift 2 ;;
             --address) address="$2"; shift 2 ;;
             --nonce) nonce="$2"; shift 2 ;;
